@@ -89,8 +89,8 @@ isStraight cards = elem ranks straights
       straights = map sort $ ([Five, Four .. Two] ++ [Ace]) : (map (reverse . sort) $ [take 5 [minRank ..] | minRank <- [Two .. Ten]])
 
 isFlush :: [Card] -> Bool
-isFlush cards = all (\c -> (suit c) == s) cards
-    where s = (suit (head cards))
+isFlush cards = all (== head suits) suits
+    where suits = map suit cards
 
 isFullHouse :: [Card] -> Bool
 isFullHouse = ([3,2] ==) . reverse . sort . map snd . groupCardsByRank
