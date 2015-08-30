@@ -1,6 +1,6 @@
 module Main where
 
-import Data.List ((\\), lookup, nub, sort, sortBy)
+import Data.List ((\\), isInfixOf, lookup, nub, sort, sortBy)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust, isNothing)
 import Data.Ord (comparing)
@@ -73,15 +73,6 @@ groupCardsByRank :: [Card] -> [(Rank, Int)]
 groupCardsByRank cards = nub [(r, occurrencesOfRank r) | c <- cards, let r = rank c]
     where occurrencesOfRank r = length $ filter (\c -> (rank c) == r) cards
   
-isPair :: [Card] -> Bool
-isPair = ([2,1,1,1] ==) . reverse . sort . map snd . groupCardsByRank
-
-isThreeOfAKind :: [Card] -> Bool
-isThreeOfAKind = ([3,1,1] ==) . reverse . sort . map snd . groupCardsByRank
-
-isTwoPair :: [Card] -> Bool
-isTwoPair = ([2,2,1] ==) . reverse . sort . map snd . groupCardsByRank
-
 isStraight :: [Card] -> Bool
 isStraight cards = isInfixOf (sort $ map rank cards) straightRanks
     where straightRanks = [minBound .. maxBound] ++ [Two, Three, Four, Five, Ace]
@@ -90,27 +81,18 @@ isFlush :: [Card] -> Bool
 isFlush cards = all (== head suits) suits
     where suits = map suit cards
 
-isFullHouse :: [Card] -> Bool
-isFullHouse = ([3,2] ==) . reverse . sort . map snd . groupCardsByRank
-
-isFourOfAKind :: [Card] -> Bool
-isFourOfAKind = ([4,1] ==) . reverse . sort . map snd . groupCardsByRank
-
 isStraightFlush :: [Card] -> Bool
 isStraightFlush cards = isStraight cards && isFlush cards
 
 calculatePokerHand :: [Card] -> PokerHand
 calculatePokerHand cards
     | isStraightFlush cards = PokerHand StraightFlush straightKicker
-    | isFourOfAKind cards   = PokerHand FourOfAKind ranks
-    | isFullHouse cards     = PokerHand FullHouse ranks
     | isFlush cards         = PokerHand Flush ranks
     | isStraight cards      = PokerHand Straight straightKicker
-    | isTwoPair cards       = PokerHand TwoPair ranks
-    | isThreeOfAKind cards  = PokerHand ThreeOfAKind ranks
-    | isPair cards          = PokerHand Pair ranks
-    | otherwise             = PokerHand HighCard ranks
+    | otherwise             = PokerHand (fromJust $ lookup rankPattern rankPatterns) ranks
     where
+      rankPattern = reverse . sort . map snd $ groupCardsByRank cards
+      rankPatterns = [([1,1,1,1,1], HighCard), ([2,1,1,1], Pair), ([2,2,1], TwoPair), ([3,1,1], ThreeOfAKind), ([3,2], FullHouse), ([4,1], FourOfAKind)]
       ranks = [r | (r, _) <- sortBy compareKickers $ groupCardsByRank cards]
       straightKicker = if elem Ace ranks && elem Two ranks then [Five] else [head ranks]
 
