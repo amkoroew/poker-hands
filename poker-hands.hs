@@ -5,12 +5,12 @@ import Data.Maybe (fromJust)
 import System.Environment (getArgs)
 
 data Rank       = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace deriving (Bounded, Enum, Eq, Ord)
-data Suit       = Spades | Hearts | Diamonds | Clubs deriving (Bounded, Enum, Eq)
+data Suit       = Spades | Hearts | Diamonds | Clubs deriving (Enum, Eq)
 data Card       = Card {rank :: Rank, suit :: Suit}
 data HandType   = HighCard | Pair | TwoPair | ThreeOfAKind | Straight | Flush | FullHouse | FourOfAKind | StraightFlush deriving (Eq, Ord)
-data PokerHand  = PokerHand {handType :: HandType, kickers :: [Rank]} deriving (Eq, Ord, Show)
-data Color      = Hero | Villain deriving (Show, Read)
-data Player     = Player {color :: Color, cards :: [Card], pokerHand :: PokerHand} deriving (Show)
+data PokerHand  = PokerHand {handType :: HandType, kickers :: [Rank]} deriving (Eq, Ord)
+data Color      = Hero | Villain
+data Player     = Player {color :: Color, cards :: [Card], pokerHand :: PokerHand}
 
 instance Show Rank where
   show Ten      = "T"
