@@ -77,24 +77,20 @@ isStraight :: [Card] -> Bool
 isStraight cards = isInfixOf (sort $ map rank cards) straightRanks
     where straightRanks = [minBound .. maxBound] ++ [Two, Three, Four, Five, Ace]
 
-isFlush :: [Card] -> Bool
-isFlush cards = all (== head suits) suits
-    where suits = map suit cards
-
-isStraightFlush :: [Card] -> Bool
-isStraightFlush cards = isStraight cards && isFlush cards
-
 calculatePokerHand :: [Card] -> PokerHand
 calculatePokerHand cards
-    | isStraightFlush cards = PokerHand StraightFlush straightKicker
-    | isFlush cards         = PokerHand Flush ranks
-    | isStraight cards      = PokerHand Straight straightKicker
-    | otherwise             = PokerHand (fromJust $ lookup rankPattern rankPatterns) ranks
+    | isStraightFlush   = PokerHand StraightFlush straightKicker
+    | isFlush           = PokerHand Flush ranks
+    | isStraight cards  = PokerHand Straight straightKicker
+    | otherwise         = PokerHand (fromJust $ lookup rankPattern rankPatterns) ranks
     where
+      suits  = map suit cards
       rankPattern = reverse . sort . map snd $ groupCardsByRank cards
       rankPatterns = [([1,1,1,1,1], HighCard), ([2,1,1,1], Pair), ([2,2,1], TwoPair), ([3,1,1], ThreeOfAKind), ([3,2], FullHouse), ([4,1], FourOfAKind)]
       ranks = [r | (r, _) <- sortBy compareKickers $ groupCardsByRank cards]
       straightKicker = if elem Ace ranks && elem Two ranks then [Five] else [head ranks]
+      isFlush = all (== head suits) suits
+      isStraightFlush = isFlush && (isStraight cards)
 
 compareKickers :: (Rank, Int) -> (Rank, Int) -> Ordering
 compareKickers (r1, o1) (r2, o2)
