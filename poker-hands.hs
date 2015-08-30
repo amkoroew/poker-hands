@@ -11,7 +11,7 @@ data Suit       = Spades | Hearts | Diamonds | Clubs deriving (Bounded, Enum, Eq
 data Card       = Card {rank :: Rank, suit :: Suit}
 data HandType   = HighCard | Pair | TwoPair | ThreeOfAKind | Straight | Flush | FullHouse | FourOfAKind | StraightFlush deriving (Eq, Ord)
 data PokerHand  = PokerHand {handType :: HandType, kickers :: [Rank]} deriving (Eq, Ord, Show)
-data Color      = White | Black deriving (Show, Read)
+data Color      = Hero | Villain deriving (Show, Read)
 data Player     = Player {color :: Color, cards :: [Card], pokerHand :: PokerHand} deriving (Show)
 
 instance Show Rank where
@@ -61,13 +61,13 @@ instance Show HandType where
   
 main :: IO ()
 main = do
-    (_:b1:b2:b3:b4:b5:_:whiteCards) <- getArgs
-    let black = Player Black (map read [b1,b2,b3,b4,b5]) (calculatePokerHand (map read [b1,b2,b3,b4,b5]))
-    let white = Player White (map read whiteCards) (calculatePokerHand (map read whiteCards))
-    putStrLn $ case compare (pokerHand white) (pokerHand black) of
+    (_:h1:h2:h3:h4:h5:_:villainCards) <- getArgs
+    let hero = Player Hero (map read [h1,h2,h3,h4,h5]) (calculatePokerHand (map read [h1,h2,h3,h4,h5]))
+    let villain = Player Villain (map read villainCards) (calculatePokerHand (map read villainCards))
+    putStrLn $ case compare (pokerHand hero) (pokerHand villain) of
                     EQ -> "Tie."
-                    GT -> "White wins. - With " ++ show (handType (pokerHand white)) ++ if (handType (pokerHand white)) == (handType (pokerHand black)) then ": " ++ (show $ head $ (kickers (pokerHand white)) \\ (kickers (pokerHand black))) else ""
-                    LT -> "Black wins. - With " ++ show (handType (pokerHand black)) ++ if (handType (pokerHand white)) == (handType (pokerHand black)) then ": " ++ (show $ head $ (kickers (pokerHand black)) \\ (kickers (pokerHand white))) else ""
+                    GT -> "Hero wins. - With " ++ show (handType (pokerHand hero)) ++ if (handType (pokerHand hero)) == (handType (pokerHand villain)) then ": " ++ (show $ head $ (kickers (pokerHand hero)) \\ (kickers (pokerHand villain))) else ""
+                    LT -> "Villain wins. - With " ++ show (handType (pokerHand villain)) ++ if (handType (pokerHand hero)) == (handType (pokerHand villain)) then ": " ++ (show $ head $ (kickers (pokerHand villain)) \\ (kickers (pokerHand hero))) else ""
 
 groupCardsByRank :: [Card] -> [(Rank, Int)]
 groupCardsByRank cards = nub [(r, occurrencesOfRank r) | c <- cards, let r = rank c]
