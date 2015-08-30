@@ -1,9 +1,7 @@
 module Main where
 
 import Data.List ((\\), isInfixOf, lookup, nub, sort, sortBy)
-import Data.List.Split (splitOn)
-import Data.Maybe (fromJust, isNothing)
-import Data.Ord (comparing)
+import Data.Maybe (fromJust)
 import System.Environment (getArgs)
 
 data Rank       = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace deriving (Bounded, Enum, Eq, Ord)
