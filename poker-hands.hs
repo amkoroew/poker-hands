@@ -1,4 +1,4 @@
-module PokerHands where
+module Main where
 
 import Data.List ((\\), lookup, nub, sort, sortBy)
 import Data.List.Split (splitOn)
@@ -6,37 +6,68 @@ import Data.Maybe (fromJust, isNothing)
 import Data.Ord (comparing)
 import System.Environment (getArgs)
 
-data Rank       = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace deriving (Bounded, Enum, Eq, Ord, Show)
-data Suit       = Spades | Hearts | Diamonds | Clubs deriving (Bounded, Enum, Eq, Show)
-data Card       = Card {rank :: Rank, suit :: Suit} deriving (Show)
-data HandType   = HighCard | Pair | ThreeOfAKind | TwoPair | Straight | Flush | FullHouse | FourOfAKind | StraightFlush deriving (Eq, Ord, Show)
+data Rank       = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King | Ace deriving (Bounded, Enum, Eq, Ord)
+data Suit       = Spades | Hearts | Diamonds | Clubs deriving (Bounded, Enum, Eq)
+data Card       = Card {rank :: Rank, suit :: Suit}
+data HandType   = HighCard | Pair | TwoPair | ThreeOfAKind | Straight | Flush | FullHouse | FourOfAKind | StraightFlush deriving (Eq, Ord)
 data PokerHand  = PokerHand {handType :: HandType, kickers :: [Rank]} deriving (Eq, Ord, Show)
 data Color      = White | Black deriving (Show, Read)
 data Player     = Player {color :: Color, cards :: [Card], pokerHand :: PokerHand} deriving (Show)
 
+instance Show Rank where
+  show Ten      = "T"
+  show Jack     = "J"
+  show Queen    = "Q"
+  show King     = "K"
+  show Ace      = "A"
+  show v        = show $ (2 +) $ fromEnum v
+  
+instance Read Rank where
+  readsPrec _ "T"   = [(Ten, "")]
+  readsPrec _ "J"   = [(Jack, "")]
+  readsPrec _ "Q"   = [(Queen, "")]
+  readsPrec _ "K"   = [(King, "")]
+  readsPrec _ "A"   = [(Ace, "")]
+  readsPrec _ v     = [(toEnum ((read v :: Int)-2), "")]
+
+instance Show Suit where
+  show Spades   = "S"
+  show Hearts   = "H"
+  show Diamonds = "D"
+  show Clubs    = "C"
+  
+instance Read Suit where
+  readsPrec _ "S"   = [(Spades, "")]
+  readsPrec _ "H"   = [(Hearts, "")]
+  readsPrec _ "D"   = [(Diamonds, "")]
+  readsPrec _ "C"   = [(Clubs, "")]
+    
+instance Show Card where
+  show (Card rank suit) = show rank ++ show suit
+  
+instance Read Card where
+  readsPrec _ (r:s) = [((Card (read [r]) (read s)), "")]
+  
+instance Show HandType where
+  show HighCard         = "high card"
+  show Pair             = "pair"
+  show TwoPair          = "two pair"
+  show ThreeOfAKind     = "three of a kind"
+  show Straight         = "straight"
+  show Flush            = "flush"
+  show FullHouse        = "full house"
+  show FourOfAKind      = "four of a kind"
+  show StraightFlush    = "straight flush"
+  
 main :: IO ()
 main = do
     (_:b1:b2:b3:b4:b5:_:whiteCards) <- getArgs
-    let black = Player Black (readCards [b1,b2,b3,b4,b5]) (calculatePokerHand (readCards [b1,b2,b3,b4,b5]))
-    let white = Player White (readCards whiteCards) (calculatePokerHand (readCards whiteCards))
+    let black = Player Black (map read [b1,b2,b3,b4,b5]) (calculatePokerHand (map read [b1,b2,b3,b4,b5]))
+    let white = Player White (map read whiteCards) (calculatePokerHand (map read whiteCards))
     putStrLn $ case compare (pokerHand white) (pokerHand black) of
                     EQ -> "Tie."
                     GT -> "White wins. - With " ++ show (handType (pokerHand white)) ++ if (handType (pokerHand white)) == (handType (pokerHand black)) then ": " ++ (show $ head $ (kickers (pokerHand white)) \\ (kickers (pokerHand black))) else ""
                     LT -> "Black wins. - With " ++ show (handType (pokerHand black)) ++ if (handType (pokerHand white)) == (handType (pokerHand black)) then ": " ++ (show $ head $ (kickers (pokerHand black)) \\ (kickers (pokerHand white))) else ""
-
-readRank :: Char -> Rank
-readRank r = fromJust $ lookup r ranks
-    where ranks = [('2',Two),('3',Three),('4',Four),('5',Five),('6',Six),('7',Seven),('8',Eight),('9', Nine),('T', Ten),('J', Jack),('Q', Queen),('K', King),('A', Ace)]
-
-readSuit :: Char -> Suit
-readSuit s = fromJust $ lookup s suits
-    where suits = [('S',Spades),('H',Hearts),('D',Diamonds),('C',Clubs)]
-
-readCard :: String -> Card
-readCard (r:s:[]) = Card (readRank r) (readSuit s)
-    
-readCards :: [String] -> [Card]
-readCards = map readCard
 
 groupCardsByRank :: [Card] -> [(Rank, Int)]
 groupCardsByRank cards = nub [(r, occurrencesOfRank r) | c <- cards, let r = rank c]
