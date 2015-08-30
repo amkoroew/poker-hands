@@ -83,10 +83,8 @@ isTwoPair :: [Card] -> Bool
 isTwoPair = ([2,2,1] ==) . reverse . sort . map snd . groupCardsByRank
 
 isStraight :: [Card] -> Bool
-isStraight cards = elem ranks straights
-    where
-      ranks =  sort [rank c | c <- cards]
-      straights = map sort $ ([Five, Four .. Two] ++ [Ace]) : (map (reverse . sort) $ [take 5 [minRank ..] | minRank <- [Two .. Ten]])
+isStraight cards = isInfixOf (sort $ map rank cards) straightRanks
+    where straightRanks = [minBound .. maxBound] ++ [Two, Three, Four, Five, Ace]
 
 isFlush :: [Card] -> Bool
 isFlush cards = all (== head suits) suits
