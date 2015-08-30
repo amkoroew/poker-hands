@@ -69,10 +69,10 @@ main = do
                     GT -> "Hero wins. - With " ++ show (handType (pokerHand hero)) ++ if (handType (pokerHand hero)) == (handType (pokerHand villain)) then ": " ++ (show $ head $ (kickers (pokerHand hero)) \\ (kickers (pokerHand villain))) else ""
                     LT -> "Villain wins. - With " ++ show (handType (pokerHand villain)) ++ if (handType (pokerHand hero)) == (handType (pokerHand villain)) then ": " ++ (show $ head $ (kickers (pokerHand villain)) \\ (kickers (pokerHand hero))) else ""
 
-groupCardsByRank :: [Card] -> [(Rank, Int)]
-groupCardsByRank cards = nub [(r, occurrencesOfRank r) | c <- cards, let r = rank c]
-    where occurrencesOfRank r = length $ filter (\c -> (rank c) == r) cards
-  
+occurrencesOfRanks :: [Rank] -> [(Rank, Int)]
+occurrencesOfRanks ranks = nub [(r, occurrencesOfRank r) | r <- ranks]
+    where occurrencesOfRank r = length $ filter (== r) ranks
+   
 calculatePokerHand :: [Card] -> PokerHand
 calculatePokerHand cards
     | isStraightFlush   = PokerHand StraightFlush straightKicker
@@ -82,10 +82,10 @@ calculatePokerHand cards
     where
       ranks = sort $ map rank cards
       suits  = map suit cards
-      rankPattern = reverse . sort . map snd $ groupCardsByRank cards
+      rankPattern = reverse . sort . map snd $ occurrencesOfRanks ranks
       rankPatterns = [([1,1,1,1,1], HighCard), ([2,1,1,1], Pair), ([2,2,1], TwoPair), ([3,1,1], ThreeOfAKind), ([3,2], FullHouse), ([4,1], FourOfAKind)]
       straightRanks = [minBound .. maxBound] ++ [Two, Three, Four, Five, Ace]
-      kickers = [r | (r, _) <- sortBy compareKickers $ groupCardsByRank cards]
+      kickers = [r | (r, _) <- sortBy compareKickers $ occurrencesOfRanks ranks]
       straightKicker = if elem Ace kickers && elem Two kickers then [Five] else [head kickers]
       isStraight = isInfixOf ranks straightRanks
       isFlush = all (== head suits) suits
